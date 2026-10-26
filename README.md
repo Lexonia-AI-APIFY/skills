@@ -34,6 +34,18 @@ Because it is text, you can read the whole thing before you install it. Each of 
 
 The same two skills are under review in Apify's community skills library, [apify/awesome-skills](https://github.com/apify/awesome-skills). When they are merged there, that copy and this one are identical; install from whichever you trust more.
 
+## n8n workflows
+
+Three ready-to-import workflows in [`n8n/`](n8n), each a complete job with a schedule, the Apify node, a check against your Google Sheet so nothing is added twice, and a Slack note:
+
+| File | What it does |
+|---|---|
+| [`audience-intel-monthly-creators-to-sheet.json`](n8n/audience-intel-monthly-creators-to-sheet.json) | Monthly: the creators your audience watches, new ones only, with contacts, into a sheet |
+| [`business-finder-weekly-leads-to-sheet.json`](n8n/business-finder-weekly-leads-to-sheet.json) | Weekly: every business of a kind in the places you name, deduplicated, with phone and contact |
+| [`video-lens-channel-summaries-to-sheet.json`](n8n/video-lens-channel-summaries-to-sheet.json) | Daily: a YouTube channel's new videos summarised once, into a sheet |
+
+Import the file in n8n (Workflows → Import from file), add your Apify, Google Sheets and Slack credentials, edit the one node that holds your inputs, run once by hand, then activate the schedule. The sticky notes inside each workflow carry the setup and the limits.
+
 ## Security
 
 Read [SECURITY.md](SECURITY.md): what a skill can and cannot do on your machine, how to check that a download is the file we published, and how to report a problem.

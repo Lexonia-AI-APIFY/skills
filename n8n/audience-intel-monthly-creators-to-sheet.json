@@ -1,0 +1,321 @@
+{
+  "name": "Find the creators your audience watches, monthly, new ones only, into Google Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Monthly creator discovery by audience, new names only\nOn the first of every month this workflow describes your audience to the Audience Intel Actor on Apify, gets back the creators that audience already watches (YouTube, TikTok, Bilibili, Douyin), ranked and tiered with a way to reach each one, and adds only the creators not already in your sheet. The sheet becomes your outreach list; a Slack message says how many came in.\n\n**Who it is for:** a brand, agency or founder running creator outreach who wants the list refreshed without redoing the research.\n\n**Behaviour:** only creators with a contact are kept; a creator already in the sheet is skipped, so re-runs never duplicate; nothing is posted when there is nothing new.\n\n**Limits:** the Actor returns the top of the audience inside the boundaries you set, not every channel that mentions the subject; Instagram is not searched; a creator with no public contact is left out by design.",
+        "width": 480,
+        "height": 520
+      },
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Setup (about 5 minutes)\n1. **Apify:** create an account, copy the API token from Console → Settings → Integrations, add it as the Apify credential on the \"Find the creators…\" node.\n2. **Describe the audience:** edit the \"Describe the audience\" node. Write the audience in your own words: who they are, what they buy, what they are not (look-alikes to leave out). The more specific, the better the list.\n3. **Google Sheets:** create a tab named `Creators` (the header row is written on the first run) and select the same spreadsheet in both Google Sheets nodes.\n4. **Slack:** pick the channel for the monthly note.\n5. **Spend cap:** the Apify node stops the run at the cap you set; raise it if a run stops short. The Actor prices the job before it searches; run it once by hand and read the estimate in the Apify Console.\n6. Run once by hand, check the rows, then activate the schedule.",
+        "width": 480,
+        "height": 400,
+        "color": 5
+      },
+      "name": "Setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        500,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 1. Describe and search\nThe audience in your words goes to the Actor; the rows come back ranked and tiered with contacts.",
+        "width": 760,
+        "height": 300,
+        "color": 7
+      },
+      "name": "Section: search",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 2. Keep only what is new\nReads the sheet, drops creators already there and any without a contact.",
+        "width": 520,
+        "height": 300,
+        "color": 7
+      },
+      "name": "Section: compare",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        780,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 3. Add and tell\nAppends the new rows and posts one Slack line, only when something came in.",
+        "width": 520,
+        "height": 300,
+        "color": 7
+      },
+      "name": "Section: deliver",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1320,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months",
+              "triggerAtDayOfMonth": 1,
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "name": "First of the month at 8am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        40,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ab5685ec-ab56-5b56-aab5-ab5685ecab56",
+              "name": "audience",
+              "type": "string",
+              "value": "US women building a skincare routine for themselves (sunscreen, retinol, sensitive skin), who buy skincare online — not dermatologists, not makeup artists, not beauty salons"
+            },
+            {
+              "id": "3cb38778-3cb3-5cb3-a3cb-3cb387783cb3",
+              "name": "platforms",
+              "type": "array",
+              "value": "=[\"youtube\", \"tiktok\"]"
+            },
+            {
+              "id": "78f3e663-78f3-58f3-a78f-78f3e66378f3",
+              "name": "maxCreators",
+              "type": "number",
+              "value": 25
+            },
+            {
+              "id": "cbc7c1cb-cbc7-5bc7-acbc-cbc7c1cbcbc7",
+              "name": "minFollowers",
+              "type": "number",
+              "value": 5000
+            },
+            {
+              "id": "856f4cd7-856f-556f-a856-856f4cd7856f",
+              "name": "excludeWords",
+              "type": "array",
+              "value": "=[\"dermatologist\", \"makeup tutorial\", \"salon\"]"
+            }
+          ]
+        }
+      },
+      "name": "Describe the audience",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        280,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "Actors",
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "lexonia~lexonia-video-intel"
+        },
+        "customBody": "={{ JSON.stringify({ topic: $json.audience, platforms: $json.platforms, maxChannels: $json.maxCreators, minFollowers: $json.minFollowers, excludeKeywords: $json.excludeWords, requireContact: true, estimateOnly: false }) }}",
+        "maxTotalChargeUsd": 8
+      },
+      "name": "Find the creators this audience watches",
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 2,
+      "position": [
+        520,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Creators"
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        }
+      },
+      "name": "Read creators already in the sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        820,
+        640
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Keep only creators not yet in the sheet, each with a way to reach them. One row per creator, ready for outreach.\nconst existing = new Set($input.all().map((i) => i.json.channelUrl).filter(Boolean));\nconst rows = $('Find the creators this audience watches').all().map((i) => i.json).filter((r) => r.channelUrl);\nconst today = new Date().toISOString().slice(0, 10);\nreturn rows\n  .filter((r) => !existing.has(r.channelUrl) && r.bestContact)\n  .map((r) => ({ json: {\n    foundOn: today, rank: r.rank, tier: r.tier, platform: r.platform, channelName: r.channelName, channelUrl: r.channelUrl,\n    subscribers: r.channelSubscribers, fit: r.fit, whyItFits: r.whyItFits, country: r.country || r.channelCountry || '',\n    bestContact: r.bestContact, contactSource: r.contactSource, sampleVideo: (r.sampleVideoUrls || [])[0] || '', status: 'to contact',\n  } }));"
+      },
+      "name": "Keep only new creators with a contact",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "columns": {
+          "value": {},
+          "schema": [],
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": []
+        },
+        "options": {},
+        "operation": "append",
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Creators"
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        }
+      },
+      "name": "Add the new creators",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1360,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "text": "={{ $('Keep only new creators with a contact').all().length }} new creators added for \"{{ $('Describe the audience').first().json.audience.slice(0, 60) }}…\" — open the Creators sheet to start outreach.",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#creator-outreach"
+        },
+        "otherOptions": {}
+      },
+      "name": "Post the monthly note",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1600,
+        640
+      ],
+      "executeOnce": true
+    }
+  ],
+  "connections": {
+    "First of the month at 8am": {
+      "main": [
+        [
+          {
+            "node": "Describe the audience",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Describe the audience": {
+      "main": [
+        [
+          {
+            "node": "Find the creators this audience watches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find the creators this audience watches": {
+      "main": [
+        [
+          {
+            "node": "Read creators already in the sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read creators already in the sheet": {
+      "main": [
+        [
+          {
+            "node": "Keep only new creators with a contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep only new creators with a contact": {
+      "main": [
+        [
+          {
+            "node": "Add the new creators",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add the new creators": {
+      "main": [
+        [
+          {
+            "node": "Post the monthly note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

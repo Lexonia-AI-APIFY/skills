@@ -1,0 +1,362 @@
+{
+  "name": "Summaries of a YouTube channel's new videos, daily, into Google Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Daily summaries of a channel's new videos, each video once\nEvery morning this workflow lists the newest videos on a YouTube channel you follow, keeps only the ones not yet in your sheet, sends those to the Video Lens Actor on Apify, and writes back one row per video: title, date, views, the spoken language and a summary in the language you choose. A competitor's channel, a regulator's, a customer's, a conference channel — read what was said without watching.\n\n**Who it is for:** anyone who needs to follow what a channel says without watching every upload: competitive intelligence, market research, teams tracking a regulator or an industry channel.\n\n**Behaviour:** the listing step is separate from the summarising step so a video is summarised exactly once; a day with nothing new runs the listing only and stops; the summary comes from the transcript (captions, or speech-to-text when a video has none).\n\n**Limits:** private, members-only and region-blocked videos are not read; the summary language is whatever you set, the transcript stays in the spoken language.",
+        "width": 480,
+        "height": 540
+      },
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Setup (about 5 minutes)\n1. **Apify:** create an account, copy the API token from Console → Settings → Integrations, add it as the Apify credential on both Apify nodes.\n2. **The channel:** edit the \"Channel to follow\" node: the channel link, how many of the newest videos to check each day, and the language you want the summaries in.\n3. **Google Sheets:** create a tab named `Videos` (the header row is written on the first run) and select the same spreadsheet in both Google Sheets nodes.\n4. **Slack:** pick the channel for the daily note.\n5. **Spend cap:** the \"Summarise…\" node stops at the cap you set; raise it for long videos.\n6. Run once by hand, check the rows, then activate the schedule.",
+        "width": 480,
+        "height": 380,
+        "color": 5
+      },
+      "name": "Setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        500,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 1. List, then compare\nThe channel's newest videos are listed and checked against the sheet; only new ones go on.",
+        "width": 1040,
+        "height": 300,
+        "color": 7
+      },
+      "name": "Section: list",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 2. Summarise once\nOne run for all new videos; transcript and summary per video.",
+        "width": 520,
+        "height": 300,
+        "color": 7
+      },
+      "name": "Section: summarise",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 3. Add and tell\nAppends the rows and posts one Slack line, only when there was something new.",
+        "width": 520,
+        "height": 300,
+        "color": 7
+      },
+      "name": "Section: deliver",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "name": "Every day at 7am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        40,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b258c825-b258-5258-ab25-b258c825b258",
+              "name": "channelUrl",
+              "type": "string",
+              "value": "https://www.youtube.com/@GoogleDevelopers"
+            },
+            {
+              "id": "c3ee037c-c3ee-53ee-ac3e-c3ee037cc3ee",
+              "name": "videosToCheck",
+              "type": "number",
+              "value": 5
+            },
+            {
+              "id": "0822aa05-0822-5822-a082-0822aa050822",
+              "name": "summaryLanguage",
+              "type": "string",
+              "value": "English"
+            }
+          ]
+        }
+      },
+      "name": "Channel to follow",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        280,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "Actors",
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "lexonia~youtube-search-api"
+        },
+        "customBody": "={{ JSON.stringify({ channelUrls: [$json.channelUrl], maxResults: $json.videosToCheck }) }}",
+        "maxTotalChargeUsd": 1
+      },
+      "name": "List the channel's newest videos",
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 2,
+      "position": [
+        520,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Videos"
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        }
+      },
+      "name": "Read videos already summarised",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        820,
+        660
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Which of the channel's newest videos are not in the sheet yet? One item carrying the list, so the summariser runs once.\nconst done = new Set($input.all().map((i) => i.json.videoId).filter(Boolean));\nconst listed = $(\"List the channel's newest videos\").all().map((i) => i.json).filter((r) => r.videoId || r.url);\nconst fresh = listed.filter((r) => !done.has(r.videoId)).map((r) => r.url || ('https://www.youtube.com/watch?v=' + r.videoId));\nreturn fresh.length ? [{ json: { videoUrls: fresh, count: fresh.length } }] : [];"
+      },
+      "name": "Keep only videos not yet summarised",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "Actors",
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "lexonia~lexonia-video-scrape"
+        },
+        "customBody": "={{ JSON.stringify({ videoUrls: $json.videoUrls, deliver: 'summary', summaryLanguages: [$('Channel to follow').first().json.summaryLanguage], modelTier: 'standard' }) }}",
+        "maxTotalChargeUsd": 3
+      },
+      "name": "Summarise the new videos",
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// One row per video: what it is, how it did, and the summary in your language.\nconst today = new Date().toISOString().slice(0, 10);\nreturn $input.all().map((i) => i.json).filter((r) => r.videoId).map((r) => ({ json: {\n  summarisedOn: today, title: r.title, channel: r.author, url: r.url, videoId: r.videoId, publishedAt: r.publishedAt, views: r.views,\n  minutes: r.durationSec ? Math.round(r.durationSec / 60) : '', spokenLanguage: r.detectedLanguage, summary: r.output || r.summary || '', note: r.note || '',\n} }));"
+      },
+      "name": "Shape the rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "columns": {
+          "value": {},
+          "schema": [],
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": []
+        },
+        "options": {},
+        "operation": "append",
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Videos"
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        }
+      },
+      "name": "Add the summaries",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1780,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "text": "={{ $('Shape the rows').all().length }} new video(s) summarised from {{ $('Channel to follow').first().json.channelUrl }} — open the Videos sheet.",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#channel-watch"
+        },
+        "otherOptions": {}
+      },
+      "name": "Post the daily note",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        2020,
+        660
+      ],
+      "executeOnce": true
+    }
+  ],
+  "connections": {
+    "Every day at 7am": {
+      "main": [
+        [
+          {
+            "node": "Channel to follow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Channel to follow": {
+      "main": [
+        [
+          {
+            "node": "List the channel's newest videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List the channel's newest videos": {
+      "main": [
+        [
+          {
+            "node": "Read videos already summarised",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read videos already summarised": {
+      "main": [
+        [
+          {
+            "node": "Keep only videos not yet summarised",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep only videos not yet summarised": {
+      "main": [
+        [
+          {
+            "node": "Summarise the new videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarise the new videos": {
+      "main": [
+        [
+          {
+            "node": "Shape the rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape the rows": {
+      "main": [
+        [
+          {
+            "node": "Add the summaries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add the summaries": {
+      "main": [
+        [
+          {
+            "node": "Post the daily note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

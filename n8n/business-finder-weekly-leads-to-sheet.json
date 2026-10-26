@@ -1,0 +1,317 @@
+{
+  "name": "Weekly local business leads by category and city, deduplicated, into Google Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Weekly local leads: every business of one kind in the places you name, new rows only\nEvery Monday this workflow asks the Business Finder Actor on Apify for every business of a category in the cities, regions or zip codes you list, with phone, website, Google rating and the contact read from each business's own site. The category is searched in the local language of each place, so a list for Warsaw or Tokyo is as complete as one for Chicago. Only businesses not already in your sheet are added, exact category matches first; one Slack line reports the count.\n\n**Who it is for:** anyone selling to local businesses (suppliers, agencies, recruiters, software for a trade) who wants a growing, clean lead sheet rather than a one-off export.\n\n**Behaviour:** a business already in the sheet is skipped on every later run; rows without a phone or contact are dropped; \"related\" matches (a supplier of the same trade, say) sort below exact ones so you read the best first.\n\n**Limits:** the Actor returns Google's listing data; it does not guess emails — when a site publishes none, the row says so. Review history (1–5 star reviews by period) is a separate option of the same Actor, not used here.",
+        "width": 480,
+        "height": 540
+      },
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Setup (about 5 minutes)\n1. **Apify:** create an account, copy the API token from Console → Settings → Integrations, add it as the Apify credential on the \"List the businesses…\" node.\n2. **What to look for:** edit the \"What to look for\" node: the kind of business in your words, the places (a city, \"a state\", a whole country, or a zip code, one per line), how many per place, and whether to read each site for the owner's contact.\n3. **Google Sheets:** create a tab named `Leads` (the header row is written on the first run) and select the same spreadsheet in both Google Sheets nodes.\n4. **Slack:** pick the channel for the weekly note.\n5. **Spend cap:** the Apify node stops the run at the cap you set; raise it for big areas. The Actor can estimate a job first (set estimateOnly to true for one run and read the estimate in the Apify Console).\n6. Run once by hand, check the rows, then activate the schedule.",
+        "width": 480,
+        "height": 400,
+        "color": 5
+      },
+      "name": "Setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        500,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 1. Name the kind and the places\nThe category is translated into each place's language and searched both ways; every row carries Google's own category.",
+        "width": 760,
+        "height": 300,
+        "color": 7
+      },
+      "name": "Section: search",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 2. Keep only what is new\nReads the sheet, drops businesses already there and rows with no way to reach them, exact matches first.",
+        "width": 520,
+        "height": 300,
+        "color": 7
+      },
+      "name": "Section: compare",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        780,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 3. Add and tell\nAppends the new rows and posts one Slack line, only when something came in.",
+        "width": 520,
+        "height": 300,
+        "color": 7
+      },
+      "name": "Section: deliver",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1320,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "name": "Every Monday at 7am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        40,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ead7948f-ead7-5ad7-aead-ead7948fead7",
+              "name": "category",
+              "type": "string",
+              "value": "dentist"
+            },
+            {
+              "id": "34d5d01d-34d5-54d5-a34d-34d5d01d34d5",
+              "name": "places",
+              "type": "array",
+              "value": "=[\"Chicago, IL, USA\", \"Evanston, IL, USA\"]"
+            },
+            {
+              "id": "0050397b-0050-5050-a005-0050397b0050",
+              "name": "perPlace",
+              "type": "number",
+              "value": 50
+            },
+            {
+              "id": "c336659c-c336-5336-ac33-c336659cc336",
+              "name": "readSitesForContact",
+              "type": "boolean",
+              "value": true
+            }
+          ]
+        }
+      },
+      "name": "What to look for",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        280,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "Actors",
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "lexonia~business-finder"
+        },
+        "customBody": "={{ JSON.stringify({ category: $json.category, locations: $json.places, maxPerLocation: $json.perPlace, findContacts: $json.readSitesForContact, estimateOnly: false }) }}",
+        "maxTotalChargeUsd": 6
+      },
+      "name": "List the businesses in these places",
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 2,
+      "position": [
+        520,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Leads"
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        }
+      },
+      "name": "Read leads already in the sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        820,
+        660
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// New businesses only, each with a phone or another way to reach it. Exact category matches first, related ones after.\nconst existing = new Set($input.all().map((i) => i.json.mapsUrl).filter(Boolean));\nconst rows = $('List the businesses in these places').all().map((i) => i.json).filter((r) => r.mapsUrl);\nconst today = new Date().toISOString().slice(0, 10);\nconst order = { exact: 0, close: 1, related: 2 };\nreturn rows\n  .filter((r) => !existing.has(r.mapsUrl) && (r.phone || r.bestContact))\n  .sort((a, b) => (order[a.categoryMatch] ?? 3) - (order[b.categoryMatch] ?? 3))\n  .map((r) => ({ json: {\n    foundOn: today, name: r.name, googleCategory: r.googleCategory, match: r.categoryMatch, place: r.placeSearched || r.placeAsked,\n    address: r.address, phone: r.phone || '', website: r.website || '', bestContact: r.bestContact || '', contactSource: r.contactSource || '',\n    rating: r.rating, reviews: r.reviewsCount, mapsUrl: r.mapsUrl, status: 'new',\n  } }));"
+      },
+      "name": "Keep only new businesses with a contact",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "columns": {
+          "value": {},
+          "schema": [],
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": []
+        },
+        "options": {},
+        "operation": "append",
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Leads"
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        }
+      },
+      "name": "Add the new leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1360,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "text": "={{ $('Keep only new businesses with a contact').all().length }} new {{ $('What to look for').first().json.category }} leads added this week — open the Leads sheet.",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#local-leads"
+        },
+        "otherOptions": {}
+      },
+      "name": "Post the weekly note",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1600,
+        660
+      ],
+      "executeOnce": true
+    }
+  ],
+  "connections": {
+    "Every Monday at 7am": {
+      "main": [
+        [
+          {
+            "node": "What to look for",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "What to look for": {
+      "main": [
+        [
+          {
+            "node": "List the businesses in these places",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List the businesses in these places": {
+      "main": [
+        [
+          {
+            "node": "Read leads already in the sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read leads already in the sheet": {
+      "main": [
+        [
+          {
+            "node": "Keep only new businesses with a contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep only new businesses with a contact": {
+      "main": [
+        [
+          {
+            "node": "Add the new leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add the new leads": {
+      "main": [
+        [
+          {
+            "node": "Post the weekly note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
