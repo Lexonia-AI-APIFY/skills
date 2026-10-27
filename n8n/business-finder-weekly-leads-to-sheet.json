@@ -141,10 +141,11 @@
       "parameters": {
         "resource": "Actors",
         "operation": "Run actor and get dataset",
+        "actorSource": "store",
         "actorId": {
           "__rl": true,
           "mode": "id",
-          "value": "lexonia~business-finder"
+          "value": "VgNCC1lfJ1pS3JflM"
         },
         "customBody": "={{ JSON.stringify({ category: $json.category, locations: $json.places, maxPerLocation: $json.perPlace, findContacts: $json.readSitesForContact, estimateOnly: false }) }}",
         "maxTotalChargeUsd": 6

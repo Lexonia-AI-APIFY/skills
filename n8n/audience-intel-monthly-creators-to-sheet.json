@@ -145,10 +145,11 @@
       "parameters": {
         "resource": "Actors",
         "operation": "Run actor and get dataset",
+        "actorSource": "store",
         "actorId": {
           "__rl": true,
           "mode": "id",
-          "value": "lexonia~lexonia-video-intel"
+          "value": "6HPl3UI9t5bcTN1ud"
         },
         "customBody": "={{ JSON.stringify({ topic: $json.audience, platforms: $json.platforms, maxChannels: $json.maxCreators, minFollowers: $json.minFollowers, excludeKeywords: $json.excludeWords, requireContact: true, estimateOnly: false }) }}",
         "maxTotalChargeUsd": 8

@@ -132,10 +132,11 @@
       "parameters": {
         "resource": "Actors",
         "operation": "Run actor and get dataset",
+        "actorSource": "store",
         "actorId": {
           "__rl": true,
           "mode": "id",
-          "value": "lexonia~youtube-search-api"
+          "value": "LRyCZhpETxWGWD5Mp"
         },
         "customBody": "={{ JSON.stringify({ channelUrls: [$json.channelUrl], maxResults: $json.videosToCheck }) }}",
         "maxTotalChargeUsd": 1
@@ -188,10 +189,11 @@
       "parameters": {
         "resource": "Actors",
         "operation": "Run actor and get dataset",
+        "actorSource": "store",
         "actorId": {
           "__rl": true,
           "mode": "id",
-          "value": "lexonia~lexonia-video-scrape"
+          "value": "lcnncDqvX5VfQArXg"
         },
         "customBody": "={{ JSON.stringify({ videoUrls: $json.videoUrls, deliver: 'summary', summaryLanguages: [$('Channel to follow').first().json.summaryLanguage], modelTier: 'standard' }) }}",
         "maxTotalChargeUsd": 3
