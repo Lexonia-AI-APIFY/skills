@@ -143,6 +143,7 @@
     },
     {
       "parameters": {
+        "authentication": "apifyOAuth2Api",
         "resource": "Actors",
         "operation": "Run actor and get dataset",
         "actorSource": "store",
