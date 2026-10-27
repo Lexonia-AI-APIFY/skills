@@ -1,6 +1,6 @@
 ---
 name: apify-video-transcript-translation
-description: Turn a video link into words - the transcript as spoken, a full translation, a summary in any language, or SRT/VTT subtitles - from YouTube (videos, Shorts, playlists, channels, topic search), Bilibili, Douyin, TikTok, Instagram and Facebook Reels and Vimeo, with speech-to-text when a video has no captions and the price shown before anything runs. Use when the user says "get the transcript of this video", "transcribe this YouTube / TikTok / Reel", "what does this Bilibili video say in English", "translate this video into Spanish", "summarise this YouTube video", "download the subtitles as SRT", "transcripts of every video in this playlist / channel", "transcript with timestamps", "this video has no captions, transcribe the speech", "视频转文字" or "把B站视频翻译成英文". Routes to one Actor, lexonia/lexonia-video-scrape. Does not download video files, read private or members-only videos, or search Bilibili or Douyin by keyword.
+description: Turn a Chinese video into English - a Bilibili BV link or a Douyin link becomes the Chinese transcript, the full English translation with timestamps, a summary or SRT/VTT subtitles - and do the same for YouTube (videos, Shorts, playlists, channels, topic search), TikTok, Instagram and Facebook Reels and Vimeo in any language, with speech-to-text when a video has no captions and the price shown before anything runs. Use when the user says "get the transcript of this video", "transcribe this YouTube / TikTok / Reel", "what does this Bilibili video say in English", "translate this video into Spanish", "summarise this YouTube video", "download the subtitles as SRT", "transcripts of every video in this playlist / channel", "transcript with timestamps", "this video has no captions, transcribe the speech", "视频转文字" or "把B站视频翻译成英文". Routes to one Actor, lexonia/lexonia-video-scrape. Does not download video files, read private or members-only videos, or search Bilibili or Douyin by keyword.
 author: Lexonia Group - routes to an Actor built by the author; no affiliate or referral parameters
 author_url: https://lexoniagroup.com
 metadata:
@@ -8,7 +8,9 @@ metadata:
   keywords: "video-transcript, youtube-transcript, transcription, speech-to-text, video-translation, subtitles, srt, vtt, video-summary, bilibili, douyin, tiktok-transcript, instagram-reels, facebook-reels, youtube-playlist, chinese-video, video-to-text, apify"
 ---
 
-# Video transcript, translation, summary and subtitles
+# Chinese video to English, and any video to text
+
+Its strongest job: a Bilibili or Douyin video the user cannot follow, turned into English they can read, quote and search - the Chinese transcript, the full English translation, the start and end second of every line. The same works for any video on the other platforms below, into any language.
 
 Turn "what does this video say?" into readable text: one row per video with the transcript as spoken, the detected language, and - when asked - a summary in the user's language, the full word-for-word translation, or timed SRT/VTT subtitles. The Actor prices the job before it processes anything, so the agent can show the user the cost and wait for a yes.
 
@@ -19,6 +21,7 @@ Disclosure: the author of this skill built and owns the Actor it routes to (`lex
 Prompts this skill handles:
 
 - "What does this Bilibili video say, in English? https://www.bilibili.com/video/BV1A4t96aEdr - with timestamps."
+- "Translate this Douyin video into English and give me a short summary." (with a douyin.com video link)
 - "Summarise this YouTube video in five bullet points: https://www.youtube.com/watch?v=jNQXAC9IVRw"
 - "Get the transcripts of the latest 10 videos on this channel and give me one file I can feed to another model: https://www.youtube.com/@GoogleDevelopers"
 - "Download English subtitles as an SRT file for this video."
